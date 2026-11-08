@@ -1,0 +1,229 @@
+/* Mani Mobile Services - Core Styles & Print Styles */
+
+:root {
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --secondary: #0f172a;
+  --accent: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Badge styles */
+.status-badge-paid {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-badge-partial {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.status-badge-pending {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Quick Select Chips */
+.quick-chip {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease-in-out;
+}
+.quick-chip:hover {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+.quick-chip.active {
+  background-color: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+/* Transitions */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.2s ease-in-out;
+}
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-success {
+  background-color: #065f46;
+  color: #ecfdf5;
+}
+.toast-error {
+  background-color: #991b1b;
+  color: #fef2f2;
+}
+.toast-info {
+  background-color: #1e3a8a;
+  color: #eff6ff;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+/* Invoice Sheet styling */
+.invoice-sheet {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* Thermal receipt variation */
+.thermal-receipt {
+  max-width: 380px !important;
+  font-size: 12px !important;
+  padding: 16px !important;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Crisp QR Code Rendering */
+.upi-pay-box img,
+#form-upi-qr-image,
+#settings-qr-preview-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Interactive table rows */
+tbody tr.cursor-pointer:hover {
+  background-color: #f0f7ff;
+}
+
+/* PRINT MEDIA STYLES - 100% Crisp, Clean & Reliable */
+@media print {
+  /* Hide all app chrome, navigation, headers, and modals */
+  header, nav, footer, main, #toast-container, .no-print, 
+  #auth-modal, #logout-confirm-modal, #wa-pdf-guide-modal, #service-modal {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  html, body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #invoice-view-modal {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  #invoice-view-modal > div {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #invoice-view-modal .p-4.sm\:p-8,
+  #invoice-view-modal .overflow-y-auto {
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  #printable-invoice-area {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  #printable-invoice-area * {
+    visibility: visible !important;
+  }
+
+  .invoice-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+}

@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Mani Mobile Services - Mobile Repair Billing</title>
+  
+  <!-- Tailwind CSS CDN for modern, clean, responsive UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            whatsapp: {
+              DEFAULT: '#25D366',
+              hover: '#1ebe5d'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Application Custom Styles & Print Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Offline-capable QRious for instant UPI QR code generation -->
+  <script src="js/qrious.min.js"></script>
+
+  <!-- html2pdf for direct 1-click PDF download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Top App Navigation Bar -->
+  <header class="bg-blue-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Brand Info -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-inner text-white font-black text-xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM15 7l-6 6" />
+            </svg>
+          </div>
+          <div>
+            <div class="font-black text-base sm:text-lg tracking-wide uppercase leading-tight shop-name-display">
+              MANI MOBILE SERVICES
+            </div>
+            <div class="text-[11px] text-blue-200 tracking-wider font-medium uppercase shop-tagline-display">
+              Mobile Repair & Service
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Desktop) -->
+        <nav class="hidden md:flex items-center space-x-1 font-medium text-sm">
+          <button data-tab-target="dashboard" class="px-3.5 py-2 rounded-md transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Dashboard</span>
+          </button>
+          
+          <button data-tab-target="new-invoice" class="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition shadow-sm flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Create Invoice</span>
+          </button>
+
+          <button data-tab-target="history" class="px-3.5 py-2 rounded-md transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Invoice History</span>
+          </button>
+
+          <button data-tab-target="services" class="px-3.5 py-2 rounded-md transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Services</span>
+          </button>
+
+          <button data-tab-target="settings" class="px-3.5 py-2 rounded-md transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <!-- Right Side: Contact badge & Logout -->
+        <div class="flex items-center space-x-3">
+          <span class="hidden lg:inline-flex items-center text-xs bg-blue-800/80 px-2.5 py-1 rounded-full text-blue-200">
+            <svg class="w-3.5 h-3.5 mr-1 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 4V3z"/></svg>
+            <span class="shop-phone-display">+91 98765 43210</span>
+          </span>
+          <button id="logout-btn" onclick="promptLogout()" title="Lock / Logout" class="text-xs bg-blue-950/60 hover:bg-red-800/80 px-2.5 py-1.5 rounded transition flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <span class="hidden sm:inline font-bold">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Bar (Bottom pinned or top strip) -->
+    <div class="md:hidden flex border-t border-blue-800 bg-blue-950 px-2 py-1.5 justify-around text-xs font-medium">
+      <button data-tab-target="dashboard" class="py-1 px-2 rounded text-center">Dashboard</button>
+      <button data-tab-target="new-invoice" class="py-1 px-3 bg-emerald-600 text-white font-bold rounded shadow">+ Invoice</button>
+      <button data-tab-target="history" class="py-1 px-2 rounded text-center">History</button>
+      <button data-tab-target="services" class="py-1 px-2 rounded text-center">Services</button>
+      <button data-tab-target="settings" class="py-1 px-2 rounded text-center">Settings</button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ======================================================== -->
+    <!-- 1. DASHBOARD VIEW -->
+    <!-- ======================================================== -->
+    <section id="tab-dashboard" class="tab-content active space-y-6">
+      
+      <!-- Top Hero / Quick Action Bar -->
+      <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-2xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center space-x-2 bg-blue-700/60 px-3 py-1 rounded-full text-xs font-semibold text-blue-200 uppercase tracking-wider mb-2">
+            <span>⚡ Fast 30-Sec Billing</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight shop-name-display">MANI MOBILE SERVICES</h2>
+          <p class="text-sm text-blue-200 mt-1">Quick mobile repair billing, instant WhatsApp invoices, and clean tracking.</p>
+        </div>
+        <div>
+          <button onclick="switchTab('new-invoice')" class="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-black text-base rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center justify-center space-x-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <span>+ CREATE NEW INVOICE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Main Stats Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Card 1: Today's Invoices -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500">
+            <span class="text-xs font-bold uppercase tracking-wider">Today's Invoices</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="stat-today-invoices" class="text-2xl sm:text-3xl font-black text-slate-900">0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Created today</div>
+          </div>
+        </div>
+
+        <!-- Card 2: Today's Revenue -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500">
+            <span class="text-xs font-bold uppercase tracking-wider">Today's Revenue</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="stat-today-revenue" class="text-2xl sm:text-3xl font-black text-emerald-700">₹0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Collected amount today</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Pending Payments -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500">
+            <span class="text-xs font-bold uppercase tracking-wider">Pending Payments</span>
+            <div class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="stat-pending-payments" class="text-2xl sm:text-3xl font-black text-red-600">₹0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Unpaid customer balance</div>
+          </div>
+        </div>
+
+        <!-- Card 4: Completed Services -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-500">
+            <span class="text-xs font-bold uppercase tracking-wider">Completed Services</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div id="stat-completed-services" class="text-2xl sm:text-3xl font-black text-slate-900">0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Fully paid repairs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Invoices List -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base sm:text-lg">Recent Service Invoices</h3>
+            <p class="text-xs text-blue-700 font-medium mt-0.5">💡 Click on any invoice row or invoice number to open complete bill, warranty, print, download PDF, or send WhatsApp.</p>
+          </div>
+          <button onclick="switchTab('history')" class="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 self-start sm:self-auto">
+            View All Invoices &rarr;
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 uppercase text-[11px] tracking-wider font-semibold border-b border-slate-200">
+                <th class="px-4 py-3">Invoice No</th>
+                <th class="px-4 py-3">Customer</th>
+                <th class="px-4 py-3">Device & Service</th>
+                <th class="px-4 py-3">Total Amount</th>
+                <th class="px-4 py-3">Payment Status</th>
+                <th class="px-4 py-3 text-right">Quick Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recent-invoices-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 2. CREATE / EDIT INVOICE VIEW -->
+    <!-- ======================================================== -->
+    <section id="tab-new-invoice" class="tab-content space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h2 id="invoice-form-title" class="text-2xl font-black text-slate-900">Create New Service Invoice</h2>
+          <p class="text-xs sm:text-sm text-slate-500">Fill in customer, mobile device, and repair service details.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <div class="bg-white px-3.5 py-1.5 rounded-lg border border-slate-300 shadow-sm text-right">
+            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Invoice Number</span>
+            <span id="form-invoice-number-display" class="font-mono font-black text-blue-700 text-base">INV-0001</span>
+          </div>
+          <button type="button" onclick="resetInvoiceForm()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-2 rounded-lg transition">
+            Clear Form
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Invoice Form -->
+      <form id="invoice-form" class="space-y-6">
+        
+        <!-- Row: Invoice Date -->
+        <div class="flex items-center justify-end space-x-2 text-xs">
+          <label class="font-semibold text-slate-600">Invoice Date:</label>
+          <input type="date" id="form-invoice-date" class="border border-slate-300 rounded px-2.5 py-1 text-slate-800 bg-white font-medium focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- Section 1: Customer Details -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center space-x-2 border-b border-slate-100 pb-3 mb-4">
+            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">1</div>
+            <h3 class="font-bold text-slate-900 text-base">Customer Details</h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Customer Name -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                Customer Name <span class="text-red-500">*</span>
+              </label>
+              <input type="text" id="form-customer-name" required placeholder="e.g. Rajesh Kumar" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+
+            <!-- Customer Mobile -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                Customer Mobile Number <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">+91</span>
+                <input type="tel" id="form-customer-phone" required placeholder="9876543210" maxlength="14" class="w-full text-sm font-mono border border-slate-300 rounded-lg pl-12 pr-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Used for sending the invoice via WhatsApp.</p>
+            </div>
+
+            <!-- Optional Customer Address -->
+            <div class="sm:col-span-2 lg:col-span-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                Customer Address <span class="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input type="text" id="form-customer-address" placeholder="e.g. Anna Nagar, Chennai" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Mobile Details -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center space-x-2 border-b border-slate-100 pb-3 mb-4">
+            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">2</div>
+            <h3 class="font-bold text-slate-900 text-base">Mobile Handset Details</h3>
+          </div>
+
+          <!-- Brand Quick Chips -->
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">Quick Brand Select:</label>
+            <div class="flex flex-wrap gap-1.5 sm:gap-2 text-xs">
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Samsung">Samsung</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Apple">Apple / iPhone</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Vivo">Vivo</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Oppo">Oppo</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Xiaomi">Xiaomi / Redmi</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Realme">Realme</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="OnePlus">OnePlus</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Motorola">Motorola</span>
+              <span class="quick-chip brand-chip px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-medium" data-brand="Other">Other</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Mobile Brand -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Brand</label>
+              <input type="text" id="form-mobile-brand" placeholder="e.g. Samsung" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+
+            <!-- Mobile Model -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Model</label>
+              <input type="text" id="form-mobile-model" placeholder="e.g. Galaxy S23 / 11 Pro" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+
+            <!-- IMEI Number (Optional) -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                IMEI Number <span class="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input type="text" id="form-imei" placeholder="15-digit IMEI" maxlength="18" class="w-full text-sm font-mono border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+
+            <!-- Problem / Complaint -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">
+                Problem / Complaint <span class="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input type="text" id="form-problem" placeholder="e.g. Display Broken, Touch Issue" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+            </div>
+          </div>
+
+          <!-- Problem Quick Chips -->
+          <div class="mt-3">
+            <span class="text-[11px] font-semibold text-slate-400 mr-2">Quick Complaints:</span>
+            <div class="inline-flex flex-wrap gap-1.5 text-xs">
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Display Broken">Screen Broken</span>
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Battery Draining Fast">Battery Issue</span>
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Charging Not Working">Charging Port</span>
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Water Damage">Water Damage</span>
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Mic / Speaker Problem">Mic / Speaker</span>
+              <span class="quick-chip problem-chip px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded text-[11px]" data-problem="Dead / Not Turning ON">Dead Phone</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Service Details Table -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">3</div>
+              <h3 class="font-bold text-slate-900 text-base">Service Details</h3>
+            </div>
+            <button type="button" id="add-service-row-btn" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center space-x-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Add Service</span>
+            </button>
+          </div>
+
+          <!-- Service Table Column Headers (Desktop) -->
+          <div class="hidden sm:grid grid-cols-12 gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 pb-1.5 px-2">
+            <div class="col-span-5">Service Description</div>
+            <div class="col-span-4">Warranty (Optional)</div>
+            <div class="col-span-2">Price (₹)</div>
+            <div class="col-span-1 text-right">Remove</div>
+          </div>
+
+          <!-- Dynamic Service Rows Container -->
+          <div class="space-y-3" id="services-rows-container">
+            <!-- Dynamically populated rows -->
+          </div>
+        </div>
+
+        <!-- Section 4: Payment & Live Summary Calculation -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Payment Mode & Paid Amount (Left) -->
+          <div class="lg:col-span-7 bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+              <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">4</div>
+              <h3 class="font-bold text-slate-900 text-base">Payment Details</h3>
+            </div>
+
+            <!-- Payment Mode Radio Buttons -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-2">Payment Mode</label>
+              <input type="hidden" id="form-payment-mode" value="Cash" />
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <label class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:border-blue-500 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                  <input type="radio" name="payment_mode_radio" value="Cash" checked class="sr-only" />
+                  <span class="block text-xs font-bold text-slate-800">💵 Cash</span>
+                </label>
+                <label class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:border-blue-500 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                  <input type="radio" name="payment_mode_radio" value="UPI" class="sr-only" />
+                  <span class="block text-xs font-bold text-slate-800">📱 UPI</span>
+                </label>
+                <label class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:border-blue-500 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                  <input type="radio" name="payment_mode_radio" value="Card" class="sr-only" />
+                  <span class="block text-xs font-bold text-slate-800">💳 Card</span>
+                </label>
+                <label class="border border-slate-200 rounded-lg p-2.5 text-center cursor-pointer hover:border-blue-500 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                  <input type="radio" name="payment_mode_radio" value="Other" class="sr-only" />
+                  <span class="block text-xs font-bold text-slate-800">Other</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- DYNAMIC UPI QR CODE CONTAINER (Shown when UPI is selected) -->
+            <div id="form-upi-qr-container" class="hidden p-4 bg-gradient-to-r from-blue-50 to-indigo-50/80 border-2 border-blue-300 rounded-xl transition">
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="space-y-1.5 text-left w-full sm:w-auto">
+                  <div class="flex items-center space-x-2">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-blue-700 text-white uppercase tracking-wider">
+                      UPI QR Code
+                    </span>
+                    <span id="form-upi-amount-badge" class="font-black text-sm text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-300 shadow-sm">
+                      Amount: ₹0
+                    </span>
+                  </div>
+                  <div class="text-xs text-slate-600 font-medium">
+                    Customer can scan with <span class="font-bold text-slate-800">GPay, PhonePe, Paytm, or BHIM</span>
+                  </div>
+                  <div class="text-xs font-mono bg-white px-2.5 py-1 rounded border border-slate-200 inline-block font-bold text-slate-800">
+                    UPI ID: <span id="form-upi-id-display" class="text-blue-700">manimobileservices@upi</span>
+                  </div>
+                  <div class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 p-2 rounded-lg leading-tight">
+                    ⚠️ <strong>Payment Verification:</strong> QR code only initiates payment on customer's phone. Staff must confirm funds in shop account before marking Paid.
+                  </div>
+                  <div class="pt-1">
+                    <button type="button" id="form-confirm-upi-paid-btn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs rounded-lg shadow transition flex items-center space-x-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                      <span>Mark as Paid (UPI Received)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Live QR Image -->
+                <div class="flex flex-col items-center bg-white p-3 rounded-xl border border-blue-200 shadow-md shrink-0">
+                  <img id="form-upi-qr-image" src="" alt="UPI Payment QR Code" class="w-32 h-32 object-contain" />
+                  <span id="form-upi-qr-caption" class="text-[10px] font-bold text-blue-800 uppercase tracking-wider mt-1.5">Scan to Pay</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount & Amount Paid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                  Discount <span class="text-slate-400 font-normal">(Optional ₹)</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">₹</span>
+                  <input type="number" id="form-discount" min="0" step="any" placeholder="0" class="w-full text-sm font-semibold border border-slate-300 rounded-lg pl-8 pr-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                  Amount Paid Now <span class="text-slate-400 font-normal">(₹)</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-semibold">₹</span>
+                  <input type="number" id="form-amount-paid" min="0" step="any" placeholder="0" class="w-full text-sm font-bold text-emerald-800 border border-slate-300 rounded-lg pl-8 pr-3 py-2.5 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Amount Presets -->
+            <div class="flex items-center space-x-2 pt-1 text-xs">
+              <span class="text-slate-400 font-medium">Quick Fill:</span>
+              <button type="button" id="pay-full-btn" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold rounded">
+                Full Amount
+              </button>
+              <button type="button" id="pay-half-btn" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded">
+                50% Advance
+              </button>
+              <button type="button" id="pay-zero-btn" class="px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 font-bold rounded">
+                ₹0 (Pending)
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Totals Summary Card (Right) -->
+          <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-blue-950 text-white rounded-xl p-5 sm:p-6 shadow-md flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+                <span class="font-bold text-sm uppercase tracking-wider text-slate-300">Invoice Summary</span>
+                <span id="calc-status-badge" class="px-2.5 py-0.5 text-xs font-black rounded uppercase tracking-wider status-badge-pending">
+                  PENDING
+                </span>
+              </div>
+
+              <div class="space-y-2.5 text-sm">
+                <div class="flex justify-between text-slate-300">
+                  <span>Subtotal:</span>
+                  <span id="calc-subtotal" class="font-semibold font-mono text-white">₹0</span>
+                </div>
+
+                <div id="calc-discount-row" class="flex justify-between text-emerald-400 hidden">
+                  <span>Discount:</span>
+                  <span id="calc-discount" class="font-semibold font-mono">-₹0</span>
+                </div>
+
+                <div id="calc-gst-row" class="flex justify-between text-slate-300 hidden text-xs">
+                  <span id="calc-gst-label">GST:</span>
+                  <span id="calc-gst" class="font-semibold font-mono">₹0</span>
+                </div>
+
+                <div class="border-t border-slate-700 pt-3 flex justify-between items-baseline">
+                  <span class="text-base font-bold text-white uppercase tracking-wider">Total Amount:</span>
+                  <span id="calc-total" class="text-2xl sm:text-3xl font-black font-mono text-white">₹0</span>
+                </div>
+
+                <div class="flex justify-between text-slate-400 text-xs pt-1 border-t border-slate-800">
+                  <span>Balance Due:</span>
+                  <span id="calc-balance" class="font-bold font-mono text-red-400 text-sm">₹0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-6">
+              <button type="submit" class="w-full py-3.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-black text-base rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span id="save-invoice-btn-text">Save & Generate Invoice</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 3. INVOICE HISTORY VIEW -->
+    <!-- ======================================================== -->
+    <section id="tab-history" class="tab-content space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h2 class="text-2xl font-black text-slate-900">Invoice History</h2>
+          <p class="text-xs sm:text-sm text-slate-500">Search and manage all past service invoices.</p>
+        </div>
+        <div>
+          <span id="history-count-badge" class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+            0 Invoices
+          </span>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-3">
+        
+        <!-- Search Input -->
+        <div class="sm:col-span-6 relative">
+          <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="history-search-input" placeholder="Search by customer name, mobile, invoice #, brand..." class="w-full text-xs sm:text-sm border border-slate-300 rounded-lg pl-9 pr-3 py-2 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <!-- Status Filter -->
+        <div class="sm:col-span-3">
+          <select id="history-status-filter" class="w-full text-xs sm:text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="all">All Payment Statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="sm:col-span-3">
+          <select id="history-date-filter" class="w-full text-xs sm:text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="all">All Time</option>
+            <option value="today">Created Today</option>
+            <option value="this_month">This Month</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Invoices Table -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 uppercase text-[11px] tracking-wider font-semibold border-b border-slate-200">
+                <th class="px-4 py-3">Invoice No & Date</th>
+                <th class="px-4 py-3">Customer</th>
+                <th class="px-4 py-3">Device & Services</th>
+                <th class="px-4 py-3">Total Amount</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 4. SERVICES CATALOG VIEW -->
+    <!-- ======================================================== -->
+    <section id="tab-services" class="tab-content space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h2 class="text-2xl font-black text-slate-900">Service Management</h2>
+          <p class="text-xs sm:text-sm text-slate-500">Configure commonly offered repair services and standard pricing.</p>
+        </div>
+        <div class="flex space-x-2">
+          <button onclick="window.serviceManager.openAddModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-lg shadow transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Add New Service</span>
+          </button>
+          <button onclick="window.serviceManager.handleResetDefaults()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs rounded-lg transition" title="Restore defaults">
+            Reset Defaults
+          </button>
+        </div>
+      </div>
+
+      <!-- Services List Table -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 uppercase text-[11px] tracking-wider font-semibold border-b border-slate-200">
+                <th class="px-4 py-3 w-16">#</th>
+                <th class="px-4 py-3">Service Name</th>
+                <th class="px-4 py-3 w-36">Default Price</th>
+                <th class="px-4 py-3 text-right w-36">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="services-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- 5. BUSINESS SETTINGS VIEW -->
+    <!-- ======================================================== -->
+    <section id="tab-settings" class="tab-content space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h2 class="text-2xl font-black text-slate-900">Business & Shop Settings</h2>
+          <p class="text-xs sm:text-sm text-slate-500">Customize shop details, invoice terms, WhatsApp number, and backup data.</p>
+        </div>
+      </div>
+
+      <form id="business-settings-form" class="space-y-6">
+        
+        <!-- Shop Details -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <h3 class="font-bold text-slate-900 text-base mb-4 border-b border-slate-100 pb-2">Shop Profile</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Business Name</label>
+              <input type="text" id="set-business-name" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Tagline / Subtitle</label>
+              <input type="text" id="set-tagline" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+              <input type="text" id="set-phone" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Shop WhatsApp Number</label>
+              <input type="text" id="set-whatsapp" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Shop Address</label>
+              <input type="text" id="set-address" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- UPI QR Code & Payment Configuration -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">UPI Payment & QR Code Settings</h3>
+              <p class="text-xs text-slate-500">Configure your shop's UPI account to generate instant payment QR codes.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-enable-upi-qr" checked class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div class="lg:col-span-7 space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                  UPI ID (VPA) <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="set-upi-id" placeholder="e.g. manimobileservices@upi" class="w-full text-sm font-mono border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                <p class="text-[11px] text-slate-400 mt-1">Accepts any GPay, PhonePe, Paytm, or BHIM VPA.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">UPI Business Name</label>
+                <input type="text" id="set-upi-business-name" placeholder="e.g. Mani Mobile Services" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Test QR Amount (₹)</label>
+                <div class="flex items-center space-x-2">
+                  <input type="number" id="set-upi-test-amount" value="1500" min="1" class="w-36 text-sm border border-slate-300 rounded-lg px-3 py-2 font-bold" />
+                  <span class="text-xs text-slate-400">Live preview updates as you type</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live QR Preview Card -->
+            <div class="lg:col-span-5 bg-gradient-to-br from-slate-50 to-blue-50 p-4 rounded-xl border border-blue-200 flex flex-col items-center text-center">
+              <span class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2">Live QR Code Preview</span>
+              <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                <img id="settings-qr-preview-image" src="" alt="QR Preview" class="w-32 h-32 object-contain mx-auto" />
+              </div>
+              <div id="settings-qr-preview-text" class="text-xs font-mono font-bold text-slate-800 mt-2">
+                manimobileservices@upi
+              </div>
+              <div id="settings-qr-preview-amount" class="text-xs font-black text-emerald-700 mt-0.5">
+                Amount: ₹1,500
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Customization -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <h3 class="font-bold text-slate-900 text-base mb-4 border-b border-slate-100 pb-2">Invoice Customization</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Invoice Number Prefix</label>
+              <input type="text" id="set-invoice-prefix" placeholder="INV-" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Thank You Message (Shown at bottom of bill)</label>
+              <input type="text" id="set-thank-you" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Invoice Terms & Conditions</label>
+              <textarea id="set-terms" rows="3" class="w-full text-xs font-mono border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional GST / Tax -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">GST / Tax Invoicing</h3>
+              <p class="text-xs text-slate-500">Enable only if you want GST tax breakdown on bills.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-enable-gst" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div id="gst-details-box" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-100 hidden">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">GSTIN Number</label>
+              <input type="text" id="set-gst-number" placeholder="e.g. 33AAAAA0000A1Z5" class="w-full text-sm font-mono uppercase border border-slate-300 rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Default GST Rate (%)</label>
+              <input type="number" id="set-gst-percent" min="0" max="28" placeholder="18" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Security / Staff Lock -->
+        <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">Staff Access PIN Lock</h3>
+              <p class="text-xs text-slate-500">Protect application with a simple PIN code.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="set-require-login" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center space-x-3">
+            <label class="text-xs font-bold text-slate-700">Security PIN:</label>
+            <input type="text" id="set-pin-code" maxlength="6" class="w-24 text-center font-mono font-bold tracking-widest text-sm border border-slate-300 rounded px-2 py-1.5" />
+            <span class="text-xs text-slate-400">(Default: 1234)</span>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <div>
+          <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow transition">
+            Save Settings
+          </button>
+        </div>
+      </form>
+
+      <!-- Data Backup & Reset Section -->
+      <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Data Backup & Restore</h3>
+        <p class="text-xs text-slate-500">
+          All data is stored directly in your browser's LocalStorage. You can export a JSON backup file to your computer or import one anytime.
+        </p>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button type="button" id="export-data-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Download Backup (JSON)</span>
+          </button>
+
+          <input type="file" id="import-file-input" accept=".json" class="hidden" />
+          <button type="button" id="import-data-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 rounded-lg transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span>Import Backup</span>
+          </button>
+
+          <button type="button" id="reset-defaults-btn" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold border border-red-200 rounded-lg transition">
+            Reset All Data to Factory Default
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: INVOICE PREVIEW & ACTIONS -->
+  <!-- ======================================================== -->
+  <div id="invoice-view-modal" class="fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="relative bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Top Action Bar -->
+      <div class="no-print bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <!-- BACK TO DASHBOARD BUTTON -->
+          <button onclick="backToDashboardFromModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white text-xs font-bold rounded-lg transition border border-slate-700 shadow-sm" title="Close and return to dashboard">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Back to Dashboard</span>
+          </button>
+          <span class="text-xs text-slate-500 hidden sm:inline">|</span>
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider hidden sm:inline">Invoice Details</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-white p-1 rounded transition text-xl font-bold leading-none">&times;</button>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons Toolbar -->
+      <div class="no-print bg-slate-50 p-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- SEND PDF INVOICE ON WHATSAPP BUTTON (PROMINENT) -->
+          <button onclick="sendWhatsAppWithPdfFromModal()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition transform active:scale-95 flex items-center space-x-2 border border-emerald-500" title="Generate PDF & Send on WhatsApp">
+            <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span id="modal-wa-btn-text">SEND PDF INVOICE ON WHATSAPP</span>
+          </button>
+
+          <!-- DOWNLOAD PDF BUTTON -->
+          <button onclick="downloadPDFFromModal()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center space-x-1.5" title="Download PDF file">
+            <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Download PDF</span>
+          </button>
+
+          <!-- PRINT BUTTON -->
+          <button onclick="printInvoiceFromModal()" class="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>Print Invoice</span>
+          </button>
+
+          <!-- MARK AS PAID BUTTON (Shown dynamically when balance > 0) -->
+          <button id="modal-mark-paid-btn" onclick="markActiveInvoiceAsPaid()" class="hidden px-3.5 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 font-bold text-xs sm:text-sm rounded-xl transition flex items-center space-x-1.5" title="Confirm payment received">
+            <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            <span>Mark as Paid</span>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- EDIT INVOICE BUTTON -->
+          <button onclick="editInvoiceFromModal()" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <span>Edit Invoice</span>
+          </button>
+          
+          <button onclick="startNewInvoiceAfterModal()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs font-bold rounded-lg transition">
+            + New Invoice
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Area Wrapper -->
+      <div class="p-4 sm:p-8 overflow-y-auto flex-1 bg-slate-100">
+        <div id="printable-invoice-area">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: WHATSAPP PDF ATTACHMENT GUIDANCE -->
+  <!-- ======================================================== -->
+  <div id="wa-pdf-guide-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 text-left space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </div>
+        <div>
+          <h4 class="font-black text-slate-900 text-base">Invoice PDF Ready</h4>
+          <p class="text-xs text-slate-500">Attach and send PDF on WhatsApp</p>
+        </div>
+      </div>
+      
+      <!-- Dynamic Info Header -->
+      <div id="wa-guide-target-box" class="bg-blue-50/80 p-3 rounded-xl border border-blue-200 text-xs flex items-center justify-between">
+        <div>
+          <span class="text-gray-500 text-[11px] block">Customer:</span>
+          <span id="wa-guide-cust-name" class="font-black text-blue-950">Customer</span>
+          <span id="wa-guide-cust-phone" class="font-mono text-blue-800 text-[11px] ml-1.5 font-bold">+91 XXXXX XXXXX</span>
+        </div>
+        <div class="text-right">
+          <span class="text-gray-500 text-[11px] block">File:</span>
+          <span id="wa-guide-filename" class="font-mono text-[11px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">Invoice.pdf</span>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div class="flex items-start space-x-2">
+          <span class="font-black text-emerald-600 bg-emerald-100 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[11px]">1</span>
+          <span>Invoice PDF has been <strong>downloaded</strong> to your Downloads folder.</span>
+        </div>
+        <div class="flex items-start space-x-2">
+          <span class="font-black text-emerald-600 bg-emerald-100 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[11px]">2</span>
+          <span>WhatsApp chat is opened for this customer with pre-filled message.</span>
+        </div>
+        <div class="flex items-start space-x-2">
+          <span class="font-black text-emerald-600 bg-emerald-100 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[11px]">3</span>
+          <span>In WhatsApp, click <strong>Attach (📎 or +) &rarr; Document</strong>, select the downloaded PDF invoice, and press <strong>Send</strong>!</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="wa-guide-reopen-btn" onclick="reopenWhatsAppChat()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span>Open WhatsApp Chat</span>
+          </button>
+          <button type="button" onclick="copyWhatsAppMessage()" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs rounded-lg transition flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>Copy Message</span>
+          </button>
+          <button type="button" onclick="downloadPDFFromModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-lg transition flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Re-download PDF</span>
+          </button>
+        </div>
+        <button type="button" onclick="document.getElementById('wa-pdf-guide-modal').classList.add('hidden')" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow transition">
+          Got it &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ADD / EDIT SERVICE -->
+  <!-- ======================================================== -->
+  <div id="service-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <h3 id="service-modal-title" class="font-bold text-slate-900 text-base">Add New Service</h3>
+        <button onclick="window.serviceManager.closeModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      </div>
+
+      <input type="hidden" id="service-id-input" />
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Service Name <span class="text-red-500">*</span></label>
+          <input type="text" id="service-name-input" placeholder="e.g. Display Replacement" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Default Warranty</label>
+          <select id="service-warranty-input" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="30 Days Warranty">30 Days Warranty</option>
+            <option value="60 Days Warranty">60 Days Warranty</option>
+            <option value="90 Days Warranty">90 Days Warranty</option>
+            <option value="6 Months Warranty">6 Months Warranty</option>
+            <option value="1 Year Warranty">1 Year Warranty</option>
+            <option value="Testing (2 Days)">Testing (2 Days)</option>
+            <option value="No Warranty">No Warranty</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Default Price (₹)</label>
+          <input type="number" id="service-price-input" min="0" step="any" placeholder="0" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Category</label>
+          <select id="service-category-input" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="Hardware">Hardware</option>
+            <option value="Software">Software</option>
+            <option value="Body">Body / Housing</option>
+            <option value="General">General / Cleaning</option>
+            <option value="Accessories">Accessories</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 mt-6 pt-4 border-t border-slate-100">
+        <button type="button" onclick="window.serviceManager.closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Cancel</button>
+        <button type="button" onclick="window.serviceManager.handleSave()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition">Save Service</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: LOGOUT CONFIRMATION -->
+  <!-- ======================================================== -->
+  <div id="logout-confirm-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 text-center space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 mx-auto flex items-center justify-center shadow-inner">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-black text-slate-900 text-lg">Are you sure you want to logout?</h3>
+        <p class="text-xs text-slate-500 mt-1">You will be logged out and required to enter your PIN to access the billing dashboard again.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button type="button" onclick="cancelLogoutPrompt()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition">
+          Cancel
+        </button>
+        <button type="button" onclick="executeLogout()" class="w-full py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow transition">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: STAFF PIN LOGIN / AUTH SCREEN -->
+  <!-- ======================================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 sm:p-8 text-center space-y-5 border border-slate-200">
+      <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <div>
+        <div class="font-black text-base text-blue-900 uppercase tracking-wide shop-name-display">MANI MOBILE SERVICES</div>
+        <h3 class="font-black text-slate-900 text-xl mt-1">Staff Access Login</h3>
+        <p class="text-xs text-slate-500 mt-1">Enter your 4-digit staff PIN to unlock the dashboard.</p>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <input type="password" id="pin-input" maxlength="6" autofocus placeholder="••••" autocomplete="current-password" class="w-40 mx-auto text-center text-3xl font-mono tracking-widest border-2 border-slate-300 rounded-xl py-2.5 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 focus:outline-none transition" />
+          <p id="pin-error" class="text-xs text-red-500 font-bold mt-2 hidden">Incorrect PIN. Please try again.</p>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-lg">
+          Unlock Dashboard
+        </button>
+        <div>
+          <button type="button" onclick="document.getElementById('pin-input').value='1234'; handleLoginSubmit()" class="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium">
+            Quick Demo Unlock (PIN: 1234)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Anchor -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/invoice.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
