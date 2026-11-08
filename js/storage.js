@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS = {
   upiBusinessName: 'Mani Mobile Services',
   enableUpiQr: true,
   requireLogin: false,
-  pinCode: '1234'
+  pinCode: '9966'
 };
 
 const DEFAULT_SERVICES = [
@@ -169,6 +169,11 @@ class StorageManager {
       }
       if (existing.enableUpiQr === undefined) {
         existing.enableUpiQr = true;
+        updated = true;
+      }
+      // Migrate old demo PIN 1234 to 9966
+      if (!existing.pinCode || existing.pinCode === '1234') {
+        existing.pinCode = '9966';
         updated = true;
       }
       if (updated) this.saveSettings(existing);
@@ -383,9 +388,9 @@ class StorageManager {
 
   login(pin) {
     const settings = this.getSettings();
-    const validPin = (settings.pinCode || '1234').trim();
+    const validPin = (settings.pinCode || '9966').trim();
     const inputPin = String(pin || '').trim();
-    if (inputPin === validPin || inputPin === '1234') {
+    if (inputPin === validPin) {
       sessionStorage.setItem(STORAGE_KEYS.AUTH, 'true');
       localStorage.removeItem('mms_is_locked');
       return true;
@@ -397,9 +402,6 @@ class StorageManager {
     sessionStorage.removeItem(STORAGE_KEYS.AUTH);
     localStorage.removeItem('mms_auth_token');
     localStorage.setItem('mms_is_locked', 'true');
-    const settings = this.getSettings();
-    settings.requireLogin = true;
-    this.saveSettings(settings);
   }
 
   // Backup & Restore
