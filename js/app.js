@@ -193,6 +193,10 @@ function setupNavigation() {
   navButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.getAttribute('data-tab-target');
+      if (target === 'new-invoice') {
+        currentEditingInvoiceId = null;
+        resetInvoiceForm();
+      }
       switchTab(target);
     });
   });
@@ -317,8 +321,8 @@ function renderDashboard() {
           <span class="block text-xs text-gray-400 font-medium">${window.invoiceService.formatDate(inv.date)}</span>
         </td>
         <td class="px-4 py-3.5 whitespace-nowrap">
-          <div class="font-bold text-gray-900 group-hover:text-blue-800 transition">${inv.customer.name}</div>
-          <div class="text-xs text-gray-500 font-mono">${inv.customer.phone || 'N/A'}</div>
+          <div class="font-bold text-gray-900 group-hover:text-blue-800 transition">${inv.customer?.name || 'Customer'}</div>
+          <div class="text-xs text-gray-500 font-mono">${inv.customer?.phone || 'N/A'}</div>
         </td>
         <td class="px-4 py-3.5">
           <div class="font-semibold text-gray-800">${brandModel}</div>
@@ -812,8 +816,9 @@ function handleInvoiceFormSubmit(e) {
     return;
   }
 
-  if (!customerPhone) {
-    alert('Please enter Customer Mobile Number.');
+  const cleanedPhone = customerPhone.replace(/\D/g, '');
+  if (!cleanedPhone || cleanedPhone.length < 10) {
+    alert('Please enter a valid 10-digit Customer Mobile Number.');
     document.getElementById('form-customer-phone').focus();
     return;
   }
@@ -918,9 +923,9 @@ window.backToDashboardFromModal = function() {
 };
 
 // -------------------------------------------------------------
-// PRINT INVOICE (100% RELIABLE IFRAME PRINT)
+// PRINT INVOICE (100% RELIABLE IFRAME PRINT - A4 & 80MM THERMAL)
 // -------------------------------------------------------------
-window.printInvoice = function(customInvoiceId) {
+window.printInvoice = function(customInvoiceId, isThermal = false) {
   const targetId = customInvoiceId || activeInvoiceId;
   if (!targetId) return;
   const invoice = window.storage.getInvoiceById(targetId);
@@ -928,7 +933,7 @@ window.printInvoice = function(customInvoiceId) {
   if (!invoice) return;
 
   activeInvoiceId = invoice.id;
-  const invoiceHTML = window.invoiceService.renderInvoiceHTML(invoice, settings, false);
+  const invoiceHTML = window.invoiceService.renderInvoiceHTML(invoice, settings, isThermal);
 
   // Update modal preview container if present
   const container = document.getElementById('printable-invoice-area');
@@ -950,6 +955,10 @@ window.printInvoice = function(customInvoiceId) {
     document.body.appendChild(printFrame);
   }
 
+  const pagePrintCss = isThermal
+    ? `@page { margin: 2mm; size: 80mm auto; } body { padding: 4px; } .invoice-sheet { border: none !important; width: 100% !important; max-width: 380px !important; margin: 0 auto; padding: 10px !important; font-size: 12px !important; }`
+    : `@page { margin: 8mm; size: auto; } body { padding: 16px; } .invoice-sheet { border: 1px solid #e2e8f0; width: 100% !important; max-width: 760px !important; margin: 0 auto; }`;
+
   try {
     const frameDoc = printFrame.contentWindow.document;
     frameDoc.open();
@@ -964,7 +973,6 @@ window.printInvoice = function(customInvoiceId) {
         <style>
           body { 
             margin: 0; 
-            padding: 16px; 
             background: #ffffff; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             -webkit-print-color-adjust: exact;
@@ -972,15 +980,11 @@ window.printInvoice = function(customInvoiceId) {
           }
           .invoice-sheet { 
             box-shadow: none !important; 
-            border: 1px solid #e2e8f0; 
-            width: 100% !important; 
-            max-width: 760px !important;
-            margin: 0 auto;
           }
           @media print {
-            body { padding: 0; }
+            body { padding: 0 !important; }
             .invoice-sheet { border: none !important; }
-            @page { margin: 8mm; size: auto; }
+            ${pagePrintCss}
           }
         </style>
       </head>
@@ -1004,12 +1008,12 @@ window.printInvoice = function(customInvoiceId) {
   }
 };
 
-window.printInvoiceFromModal = function() {
-  window.printInvoice(activeInvoiceId);
+window.printInvoiceFromModal = function(isThermal = false) {
+  window.printInvoice(activeInvoiceId, isThermal);
 };
 
-window.quickPrint = function(id) {
-  window.printInvoice(id);
+window.quickPrint = function(id, isThermal = false) {
+  window.printInvoice(id, isThermal);
 };
 
 // -------------------------------------------------------------
@@ -1105,6 +1109,19 @@ window.sendWhatsAppWithPdfFromModal = async function(customInvoiceId) {
     navigator.clipboard.writeText(messageText).catch(() => {});
   }
 
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const waUrl = window.invoiceService.sendViaWhatsApp(invoice, settings);
+
+  // To prevent desktop browser popup blockers, open the WhatsApp window synchronously if not using mobile Web Share
+  let waWindow = null;
+  if (!isMobile) {
+    try {
+      waWindow = window.open(waUrl, '_blank');
+    } catch (e) {
+      console.warn('Popup open notice:', e);
+    }
+  }
+
   let invoiceSheet = document.querySelector('#printable-invoice-area .invoice-sheet');
   let tempContainer = null;
   if (!invoiceSheet) {
@@ -1130,12 +1147,15 @@ window.sendWhatsAppWithPdfFromModal = async function(customInvoiceId) {
 
   try {
     // Check if device supports Web Share API with File attachment (Mobile Chrome / Safari)
-    if (window.html2pdf && navigator.canShare) {
+    if (window.html2pdf && navigator.canShare && isMobile) {
       try {
         const pdfBlob = await html2pdf().set(opt).from(invoiceSheet).output('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
         if (navigator.canShare({ files: [pdfFile] })) {
+          if (waWindow && !waWindow.closed) {
+            waWindow.close();
+          }
           await navigator.share({
             files: [pdfFile],
             title: `Invoice #${invoice.invoiceNumber} - ${settings.businessName}`,
@@ -1154,23 +1174,25 @@ window.sendWhatsAppWithPdfFromModal = async function(customInvoiceId) {
       }
     }
 
-    // Direct Desktop / Browser Workflow:
+    // Direct Desktop / Web Workflow:
     // 1. Download PDF file
     if (window.html2pdf) {
       await html2pdf().set(opt).from(invoiceSheet).save();
     }
 
-    // 2. Open direct WhatsApp chat for customer
-    const waUrl = window.invoiceService.sendViaWhatsApp(invoice, settings);
-    window.open(waUrl, '_blank');
+    // 2. Ensure WhatsApp chat is open (fallback if sync window.open didn't trigger)
+    if (!waWindow || waWindow.closed) {
+      window.open(waUrl, '_blank');
+    }
 
     // 3. Show Direct Send Guidance Modal
     showWhatsAppGuideModal(invoice, filename);
 
   } catch (err) {
     console.error('WhatsApp PDF flow error', err);
-    const waUrl = window.invoiceService.sendViaWhatsApp(invoice, settings);
-    window.open(waUrl, '_blank');
+    if (!waWindow || waWindow.closed) {
+      window.open(waUrl, '_blank');
+    }
     window.showToast('Opening WhatsApp chat...', 'info');
   } finally {
     if (tempContainer) tempContainer.remove();
@@ -1185,8 +1207,8 @@ function showWhatsAppGuideModal(invoice, filename) {
   const phoneEl = document.getElementById('wa-guide-cust-phone');
   const fileEl = document.getElementById('wa-guide-filename');
 
-  if (nameEl) nameEl.innerText = invoice.customer.name || 'Customer';
-  if (phoneEl) phoneEl.innerText = invoice.customer.phone ? `+91 ${invoice.customer.phone}` : 'No phone specified';
+  if (nameEl) nameEl.innerText = invoice.customer?.name || 'Customer';
+  if (phoneEl) phoneEl.innerText = invoice.customer?.phone ? `+91 ${invoice.customer.phone}` : 'No phone specified';
   if (fileEl) fileEl.innerText = filename || `Invoice_${invoice.invoiceNumber}.pdf`;
 
   guideModal.classList.remove('hidden');
@@ -1252,18 +1274,18 @@ window.editInvoiceFromModal = function() {
   document.getElementById('form-invoice-number-display').innerText = invoice.invoiceNumber;
   document.getElementById('form-invoice-date').value = invoice.date;
 
-  document.getElementById('form-customer-name').value = invoice.customer.name || '';
-  document.getElementById('form-customer-phone').value = invoice.customer.phone || '';
-  document.getElementById('form-customer-address').value = invoice.customer.address || '';
+  document.getElementById('form-customer-name').value = invoice.customer?.name || '';
+  document.getElementById('form-customer-phone').value = invoice.customer?.phone || '';
+  document.getElementById('form-customer-address').value = invoice.customer?.address || '';
 
-  document.getElementById('form-mobile-brand').value = invoice.device.brand || '';
-  document.getElementById('form-mobile-model').value = invoice.device.model || '';
-  document.getElementById('form-imei').value = invoice.device.imei || '';
-  document.getElementById('form-problem').value = invoice.device.problem || '';
+  document.getElementById('form-mobile-brand').value = invoice.device?.brand || '';
+  document.getElementById('form-mobile-model').value = invoice.device?.model || '';
+  document.getElementById('form-imei').value = invoice.device?.imei || '';
+  document.getElementById('form-problem').value = invoice.device?.problem || '';
 
   // Select brand chip if match
   document.querySelectorAll('.brand-chip').forEach(c => {
-    if (c.getAttribute('data-brand') === invoice.device.brand) {
+    if (invoice.device?.brand && c.getAttribute('data-brand') === invoice.device.brand) {
       c.classList.add('active');
     } else {
       c.classList.remove('active');
@@ -1297,7 +1319,8 @@ window.deleteInvoicePrompt = function(id) {
   const invoice = window.storage.getInvoiceById(id);
   if (!invoice) return;
 
-  if (confirm(`Are you sure you want to delete Invoice ${invoice.invoiceNumber} for ${invoice.customer.name}? This cannot be undone.`)) {
+  const customerName = invoice.customer?.name || 'Customer';
+  if (confirm(`Are you sure you want to delete Invoice ${invoice.invoiceNumber} for ${customerName}? This cannot be undone.`)) {
     window.storage.deleteInvoice(id);
     window.showToast(`Invoice ${invoice.invoiceNumber} deleted`, 'info');
     renderHistoryTable();
@@ -1334,11 +1357,11 @@ function renderHistoryTable() {
 
   const filtered = invoices.filter(inv => {
     if (search) {
-      const matchName = (inv.customer.name || '').toLowerCase().includes(search);
-      const matchPhone = (inv.customer.phone || '').toLowerCase().includes(search);
+      const matchName = (inv.customer?.name || '').toLowerCase().includes(search);
+      const matchPhone = (inv.customer?.phone || '').toLowerCase().includes(search);
       const matchNumber = (inv.invoiceNumber || '').toLowerCase().includes(search);
-      const matchBrand = (inv.device.brand || '').toLowerCase().includes(search);
-      const matchModel = (inv.device.model || '').toLowerCase().includes(search);
+      const matchBrand = (inv.device?.brand || '').toLowerCase().includes(search);
+      const matchModel = (inv.device?.model || '').toLowerCase().includes(search);
       if (!matchName && !matchPhone && !matchNumber && !matchBrand && !matchModel) {
         return false;
       }
@@ -1390,8 +1413,8 @@ function renderHistoryTable() {
           <div class="text-xs text-gray-400 font-medium">${window.invoiceService.formatDate(inv.date)}</div>
         </td>
         <td class="px-4 py-3.5 whitespace-nowrap">
-          <div class="font-bold text-gray-900">${inv.customer.name}</div>
-          <div class="text-xs font-mono text-gray-500">${inv.customer.phone || 'N/A'}</div>
+          <div class="font-bold text-gray-900">${inv.customer?.name || 'Customer'}</div>
+          <div class="text-xs font-mono text-gray-500">${inv.customer?.phone || 'N/A'}</div>
         </td>
         <td class="px-4 py-3.5">
           <div class="font-medium text-gray-800 text-xs sm:text-sm">${brandModel}</div>
@@ -1477,7 +1500,7 @@ function loadSettingsIntoForm() {
   if (requireLoginCheckbox) {
     requireLoginCheckbox.checked = !!settings.requireLogin;
   }
-  document.getElementById('set-pin-code').value = settings.pinCode || '1234';
+  document.getElementById('set-pin-code').value = settings.pinCode || '9966';
 
   // Update Settings QR Preview
   updateSettingsQrPreview();
@@ -1586,6 +1609,10 @@ function setupSettingsForm() {
           updateBrandingDisplay();
           loadSettingsIntoForm();
           renderDashboard();
+          renderHistoryTable();
+          if (window.serviceManager) {
+            window.serviceManager.renderServicesTable('services-table-body');
+          }
         } else {
           alert('Failed to import backup file: ' + res.error);
         }
@@ -1603,6 +1630,10 @@ function setupSettingsForm() {
       updateBrandingDisplay();
       loadSettingsIntoForm();
       renderDashboard();
+      renderHistoryTable();
+      if (window.serviceManager) {
+        window.serviceManager.renderServicesTable('services-table-body');
+      }
     }
   });
 }

@@ -222,6 +222,14 @@ tbody tr.cursor-pointer:hover {
     width: 100% !important;
   }
 
+  .thermal-receipt {
+    max-width: 380px !important;
+    width: 100% !important;
+    padding: 6px !important;
+    font-size: 11px !important;
+    border: none !important;
+  }
+
   @page {
     size: auto;
     margin: 10mm;

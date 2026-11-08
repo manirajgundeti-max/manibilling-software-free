@@ -177,7 +177,7 @@ Thank you.`;
   renderInvoiceHTML(invoice, settings, isThermal = false) {
     const sym = settings.currency || '₹';
     const formattedDate = this.formatDate(invoice.date);
-    const brandModel = [invoice.device.brand, invoice.device.model].filter(Boolean).join(' ') || 'Mobile Device';
+    const brandModel = [invoice.device?.brand, invoice.device?.model].filter(Boolean).join(' ') || 'Mobile Device';
 
     const statusBadgeClass = invoice.status === 'Paid' 
       ? 'status-badge-paid' 
@@ -191,31 +191,29 @@ Thank you.`;
       const warrantyText = srv.warranty || '30 Days Warranty';
       servicesHtml += `
         <tr class="service-row border-b border-gray-100">
-          <td class="text-left py-2.5 pr-2">
+          <td class="text-left py-2 pr-2">
             <div class="font-bold text-gray-900 text-xs md:text-sm">${srv.name}</div>
           </td>
-          <td class="text-center py-2.5 px-2 whitespace-nowrap">
+          <td class="text-center py-2 px-2 whitespace-nowrap">
             <span class="inline-block px-2 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-800 rounded border border-blue-100">
               🛡️ ${warrantyText}
             </span>
           </td>
-          <td class="text-right py-2.5 pl-2 font-bold text-gray-900 text-xs md:text-sm">
+          <td class="text-right py-2 pl-2 font-bold text-gray-900 text-xs md:text-sm">
             ${this.formatCurrency(srv.price, sym)}
           </td>
         </tr>
       `;
     });
 
-    // Determine if UPI QR code should be rendered on invoice
-    // When payment mode is UPI (or when there is balance due and UPI QR enabled)
+    // Determine if UPI QR code or Paid banner should be rendered
     let upiQrHtml = '';
-    const shouldShowUpi = settings.enableUpiQr && settings.upiId && (invoice.paymentMode === 'UPI' || invoice.balance > 0);
+    const hasBalance = (parseFloat(invoice.balance) || 0) > 0;
+    const shouldShowUpiQr = settings.enableUpiQr && settings.upiId && hasBalance;
     
-    if (shouldShowUpi) {
-      // Amount to request on QR:
-      // If customer has unpaid balance, request remaining balance.
-      // If balance is 0, request total amount (as bill payment reference).
-      const qrAmount = invoice.balance > 0 ? invoice.balance : invoice.total;
+    if (shouldShowUpiQr) {
+      // Amount to request on QR: request remaining balance
+      const qrAmount = invoice.balance;
       const upiUri = this.getUpiUri(settings.upiId, settings.upiBusinessName || settings.businessName, qrAmount, invoice.invoiceNumber);
       const qrDataUrl = this.getQrCodeDataUrl(upiUri, 150);
 
@@ -223,15 +221,15 @@ Thank you.`;
         <div class="upi-pay-box mt-4 p-3.5 bg-blue-50/60 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
           <div class="text-left space-y-1">
             <div class="flex items-center space-x-1.5">
-              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <span class="font-bold text-gray-900 text-xs sm:text-sm">Scan with Any UPI App</span>
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span class="font-bold text-gray-900 text-xs sm:text-sm">Scan to Pay Balance via UPI</span>
             </div>
             <div class="text-[11px] text-gray-600">GPay, PhonePe, Paytm, BHIM</div>
             <div class="font-mono text-xs text-blue-900 font-bold bg-white px-2 py-0.5 rounded border border-blue-200 inline-block">
               ${settings.upiId}
             </div>
-            <div class="text-xs font-black text-emerald-800 pt-0.5">
-              ${invoice.balance > 0 ? `Payable Balance: ${this.formatCurrency(qrAmount, sym)}` : `Invoice Total: ${this.formatCurrency(qrAmount, sym)}`}
+            <div class="text-xs font-black text-red-700 pt-0.5">
+              Pending Balance: ${this.formatCurrency(qrAmount, sym)}
             </div>
             <div class="text-[10px] text-slate-500 italic">
               *Staff will confirm payment upon receipt.
@@ -239,7 +237,22 @@ Thank you.`;
           </div>
           <div class="p-2 bg-white rounded-lg border border-blue-200 shadow-sm flex flex-col items-center">
             <img src="${qrDataUrl}" alt="UPI Payment QR" class="w-24 h-24 sm:w-28 sm:h-28 object-contain" />
-            <span class="text-[10px] font-bold text-blue-800 tracking-wider uppercase mt-1">UPI Pay ₹${qrAmount}</span>
+            <span class="text-[10px] font-bold text-blue-800 tracking-wider uppercase mt-1">Pay ₹${qrAmount}</span>
+          </div>
+        </div>
+      `;
+    } else if (invoice.status === 'Paid') {
+      upiQrHtml = `
+        <div class="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-900">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">✓</div>
+            <div>
+              <div class="font-black text-xs uppercase tracking-wider">Payment Received & Verified</div>
+              <div class="text-[11px] text-emerald-700">Mode: ${invoice.paymentMode || 'Cash'} • Fully Settled</div>
+            </div>
+          </div>
+          <div class="text-right font-mono text-xs font-black text-emerald-800">
+            ${this.formatCurrency(invoice.total, sym)}
           </div>
         </div>
       `;
@@ -268,9 +281,9 @@ Thank you.`;
         <div class="grid grid-cols-2 gap-4 py-4 text-xs md:text-sm border-b border-gray-200">
           <div>
             <div class="text-gray-500 text-[11px] uppercase tracking-wider font-bold">Customer Details</div>
-            <div class="font-black text-gray-900 text-sm md:text-base mt-0.5">${invoice.customer.name || 'Walk-in Customer'}</div>
-            <div class="font-mono font-bold text-gray-800 mt-0.5">Mobile: ${invoice.customer.phone || 'N/A'}</div>
-            ${invoice.customer.address ? `<div class="text-gray-600 text-xs mt-0.5">${invoice.customer.address}</div>` : ''}
+            <div class="font-black text-gray-900 text-sm md:text-base mt-0.5">${invoice.customer?.name || 'Walk-in Customer'}</div>
+            <div class="font-mono font-bold text-gray-800 mt-0.5">Mobile: ${invoice.customer?.phone || 'N/A'}</div>
+            ${invoice.customer?.address ? `<div class="text-gray-600 text-xs mt-0.5">${invoice.customer?.address}</div>` : ''}
           </div>
           <div class="text-right">
             <div class="inline-block text-left">
@@ -297,11 +310,11 @@ Thank you.`;
             <div>
               <span class="text-gray-500 font-semibold">Mobile Handset:</span>
               <span class="font-black text-gray-900 ml-1">${brandModel}</span>
-              ${invoice.device.imei ? `<span class="text-gray-500 block text-[11px] mt-0.5 font-mono">IMEI: ${invoice.device.imei}</span>` : ''}
+              ${invoice.device?.imei ? `<span class="text-gray-500 block text-[11px] mt-0.5 font-mono">IMEI: ${invoice.device?.imei}</span>` : ''}
             </div>
             <div>
               <span class="text-gray-500 font-semibold">Complaint / Problem:</span>
-              <span class="font-bold text-amber-900 ml-1">${invoice.device.problem || 'General Checkup & Service'}</span>
+              <span class="font-bold text-amber-900 ml-1">${invoice.device?.problem || 'General Checkup & Service'}</span>
             </div>
           </div>
         </div>
